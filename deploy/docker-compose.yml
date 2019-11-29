@@ -1,0 +1,69 @@
+version: '3.7'
+
+services:
+  alertmanager:
+    image: ${IMAGE_NAME:-prom/alertmanager}:${IMAGE_TAG:-latest}
+    entrypoint: /entrypoint.sh
+    environment:
+      SLACK_URL:
+      SLACK_CHANNEL:
+      SLACK_USER:
+    networks:
+      metric-net:
+      traefik-net:
+    volumes:
+      - alertmanager-vol:/alertmanager
+    configs:
+      - source: entrypoint-config
+        target: /entrypoint.sh
+        mode: 0555
+      - source: alertmanager-config
+        target: /etc/alertmanager/config-tmpl.yml
+    deploy:
+      mode: replicated
+      replicas: ${REPLICAS:-1}
+      restart_policy:
+        delay: ${RESTART_DELAY:-10s}
+      update_config:
+        delay: ${UPDATE_DELAY:-1m}
+      labels:
+        traefik.http.routers.alertmanager.entrypoints: ${TRAEFIK_ENTRYPOINT:-https}
+        traefik.http.routers.alertmanager.tls.certresolver: ${TRAEFIK_CERTRESOLVER:-default}
+        traefik.http.routers.alertmanager.rule: Host(`${TRAEFIK_SUBDOMAIN:-alertmanager}.${TRAEFIK_DOMAIN}`)
+        traefik.http.middlewares.alertmanager-auth.basicauth.users: ${TRAEFIK_AUTH}
+        traefik.http.routers.alertmanager.middlewares: alertmanager-auth
+        traefik.http.services.alertmanager.loadbalancer.server.port: ${PORT:-9093}
+      resources:
+        limits:
+          cpus: '${RESOURCES_LIMITS_CPUS:-0.5}'
+          memory: ${RESOURCES_LIMITS_MEMORY:-32M}
+        reservations:
+          cpus: '${RESOURCES_RESERVATIONS_CPUS:-0.001}'
+          memory: ${RESOURCES_RESERVATIONS_MEMORY:-16M}
+
+networks:
+  metric-net:
+    name: ${METRIC_NET_NAME:-metric-net}
+    external: true
+
+  traefik-net:
+    name: ${TRAEFIK_NET_NAME:-traefik-net}
+    external: true
+
+volumes:
+  alertmanager-vol:
+    name: ${ALERTMANAGER_VOL_NAME:-alertmanager-vol}
+    driver: local
+    driver_opts:
+      type: ${ALERTMANAGER_VOL_TYPE:-nfs}
+      o: ${ALERTMANAGER_VOL_OPTIONS}
+      device: ${ALERTMANAGER_VOL_DEVICE:-:/alertmanager-vol/}
+
+configs:
+  entrypoint-config:
+    name: ${ENTRYPOINT_CONFIG_NAME:-alertmanager-entrypoint}
+    file: ./config/entrypoint.sh
+
+  alertmanager-config:
+    name: ${ALERTMANAGER_CONFIG_NAME:-alertmanager-config}
+    file: ./config/config-tmpl.yml
