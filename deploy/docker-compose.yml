@@ -18,7 +18,7 @@ services:
         target: /entrypoint.sh
         mode: 0555
       - source: alertmanager-config
-        target: /etc/alertmanager/config-tmpl.yml
+        target: /etc/alertmanager/alertmanager-tmpl.yml
     deploy:
       mode: replicated
       replicas: ${REPLICAS:-1}
@@ -66,4 +66,4 @@ configs:
 
   alertmanager-config:
     name: ${ALERTMANAGER_CONFIG_NAME:-alertmanager-config}
-    file: ./config/config-tmpl.yml
+    file: ./config/alertmanager-tmpl.yml
