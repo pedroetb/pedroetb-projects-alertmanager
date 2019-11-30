@@ -3,22 +3,26 @@ version: '3.7'
 services:
   alertmanager:
     image: ${IMAGE_NAME:-prom/alertmanager}:${IMAGE_TAG:-latest}
-    entrypoint: /entrypoint.sh
+    entrypoint: ${CONFIG_PATH}/entrypoint.sh
+    command:
+      - --config.file=${CONFIG_PATH}/alertmanager.yml
+      - --storage.path=${DATA_PATH}
     environment:
       SLACK_URL:
       SLACK_CHANNEL:
       SLACK_USER:
+      CONFIG_PATH:
     networks:
       metric-net:
       traefik-net:
     volumes:
-      - alertmanager-vol:/alertmanager
+      - alertmanager-vol:${DATA_PATH}
     configs:
       - source: entrypoint-config
-        target: /entrypoint.sh
+        target: ${CONFIG_PATH}/entrypoint.sh
         mode: 0555
       - source: alertmanager-config
-        target: /etc/alertmanager/alertmanager-tmpl.yml
+        target: ${CONFIG_PATH}/alertmanager-tmpl.yml
     deploy:
       mode: replicated
       replicas: ${REPLICAS:-1}
