@@ -31,6 +31,7 @@ services:
       update_config:
         delay: ${UPDATE_DELAY:-1m}
       labels:
+        traefik.enable: 'true'
         traefik.http.routers.alertmanager.entrypoints: ${TRAEFIK_ENTRYPOINT:-https}
         traefik.http.routers.alertmanager.tls.certresolver: ${TRAEFIK_CERTRESOLVER:-default}
         traefik.http.routers.alertmanager.rule: Host(`${TRAEFIK_SUBDOMAIN:-alertmanager}.${TRAEFIK_DOMAIN}`)
@@ -48,10 +49,12 @@ services:
 networks:
   metric-net:
     name: ${METRIC_NET_NAME:-metric-net}
+    driver: ${METRIC_NET_DRIVER:-overlay}
     external: true
 
   traefik-net:
     name: ${TRAEFIK_NET_NAME:-traefik-net}
+    driver: ${TRAEFIK_NET_DRIVER:-overlay}
     external: true
 
 volumes:
@@ -59,7 +62,7 @@ volumes:
     name: ${ALERTMANAGER_VOL_NAME:-alertmanager-vol}
     driver: local
     driver_opts:
-      type: ${ALERTMANAGER_VOL_TYPE:-nfs}
+      type: ${ALERTMANAGER_VOL_TYPE:-nfs4}
       o: ${ALERTMANAGER_VOL_OPTIONS}
       device: ${ALERTMANAGER_VOL_DEVICE:-:/alertmanager-vol/}
 
