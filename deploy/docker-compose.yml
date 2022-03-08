@@ -7,6 +7,7 @@ services:
     command:
       - --config.file=${CONFIG_PATH}/alertmanager.yml
       - --storage.path=${DATA_PATH}
+      - --web.external-url=https://${TRAEFIK_SUBDOMAIN}.${TRAEFIK_DOMAIN}
     environment:
       SLACK_URL:
       SLACK_CHANNEL:
@@ -16,7 +17,7 @@ services:
       metric-net:
       traefik-net:
     volumes:
-      - alertmanager-vol:${DATA_PATH}
+      - data-vol:${DATA_PATH}
     configs:
       - source: entrypoint-config
         target: ${CONFIG_PATH}/entrypoint.sh
@@ -34,7 +35,7 @@ services:
         traefik.enable: 'true'
         traefik.http.routers.alertmanager.entrypoints: ${TRAEFIK_ENTRYPOINT:-https}
         traefik.http.routers.alertmanager.tls.certresolver: ${TRAEFIK_CERTRESOLVER:-default}
-        traefik.http.routers.alertmanager.rule: Host(`${TRAEFIK_SUBDOMAIN:-alertmanager}.${TRAEFIK_DOMAIN}`)
+        traefik.http.routers.alertmanager.rule: Host(`${TRAEFIK_SUBDOMAIN}.${TRAEFIK_DOMAIN}`)
         traefik.http.middlewares.alertmanager-auth.basicauth.users: ${TRAEFIK_AUTH}
         traefik.http.routers.alertmanager.middlewares: alertmanager-auth
         traefik.http.services.alertmanager.loadbalancer.server.port: ${PORT:-9093}
@@ -58,13 +59,13 @@ networks:
     external: true
 
 volumes:
-  alertmanager-vol:
-    name: ${ALERTMANAGER_VOL_NAME:-alertmanager-vol}
+  data-vol:
+    name: ${DATA_VOL_NAME}
     driver: local
     driver_opts:
-      type: ${ALERTMANAGER_VOL_TYPE:-nfs4}
-      o: ${ALERTMANAGER_VOL_OPTIONS}
-      device: ${ALERTMANAGER_VOL_DEVICE:-:/alertmanager-vol/}
+      type: ${VOL_TYPE}
+      o: ${VOL_OPTS}
+      device: ${DATA_VOL_DEVICE}
 
 configs:
   entrypoint-config:
