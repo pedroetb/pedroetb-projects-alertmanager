@@ -9,5 +9,3 @@ stages:
 .deploy:
   variables:
     STACK: metric
-  environment:
-    url: https://${DD_TRAEFIK_SUBDOMAIN}.${DD_TRAEFIK_DOMAIN}

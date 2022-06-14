@@ -1,4 +1,4 @@
-version: '3.7'
+version: '3.9'
 
 services:
   alertmanager:
@@ -34,7 +34,6 @@ services:
       labels:
         traefik.enable: 'true'
         traefik.http.routers.alertmanager.entrypoints: ${TRAEFIK_ENTRYPOINT:-https}
-        traefik.http.routers.alertmanager.tls.certresolver: ${TRAEFIK_CERTRESOLVER:-default}
         traefik.http.routers.alertmanager.rule: Host(`${TRAEFIK_SUBDOMAIN}.${TRAEFIK_DOMAIN}`)
         traefik.http.middlewares.alertmanager-auth.basicauth.users: ${TRAEFIK_AUTH}
         traefik.http.routers.alertmanager.middlewares: alertmanager-auth
@@ -64,7 +63,7 @@ volumes:
     driver: local
     driver_opts:
       type: ${VOL_TYPE}
-      o: ${VOL_OPTS}
+      o: addr=${VOL_ADDR},${VOL_OPTS}
       device: ${DATA_VOL_DEVICE}
 
 configs:
