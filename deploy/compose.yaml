@@ -1,5 +1,3 @@
-version: '3.9'
-
 services:
   alertmanager:
     image: ${IMAGE_NAME:-prom/alertmanager}:${IMAGE_TAG:-latest}
