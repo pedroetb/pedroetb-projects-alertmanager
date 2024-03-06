@@ -9,10 +9,10 @@ services:
       - --storage.path=${DATA_PATH}
       - --web.external-url=https://${TRAEFIK_SUBDOMAIN}.${TRAEFIK_DOMAIN}
     environment:
+      CONFIG_PATH:
       SLACK_URL:
       SLACK_CHANNEL:
       SLACK_USER:
-      CONFIG_PATH:
     networks:
       metric-net:
       traefik-net:
@@ -24,6 +24,12 @@ services:
         mode: 0555
       - source: alertmanager-config
         target: ${CONFIG_PATH}/alertmanager-tmpl.yml
+    healthcheck:
+      test: wget --spider -q http://localhost:${PORT}/-/healthy
+      interval: ${HEALTHCHECK_INTERVAL:-1m}
+      timeout: ${HEALTHCHECK_TIMEOUT:-15s}
+      retries: ${HEALTHCHECK_RETRIES:-10}
+      start_period: ${HEALTHCHECK_START_PERIOD:-1m}
     deploy:
       mode: replicated
       replicas: ${REPLICAS:-1}
@@ -32,19 +38,19 @@ services:
       update_config:
         delay: ${UPDATE_DELAY:-1m}
       labels:
-        traefik.enable: 'true'
+        traefik.enable: ${TRAEFIK_ENABLE:-true}
         traefik.http.routers.alertmanager.entrypoints: ${TRAEFIK_ENTRYPOINT:-https}
         traefik.http.routers.alertmanager.rule: Host(`${TRAEFIK_SUBDOMAIN}.${TRAEFIK_DOMAIN}`)
         traefik.http.middlewares.alertmanager-auth.basicauth.users: ${TRAEFIK_AUTH}
         traefik.http.routers.alertmanager.middlewares: alertmanager-auth
-        traefik.http.services.alertmanager.loadbalancer.server.port: ${PORT:-9093}
+        traefik.http.services.alertmanager.loadbalancer.server.port: ${PORT}
       resources:
         limits:
           cpus: '${RESOURCES_LIMITS_CPUS:-0.5}'
-          memory: ${RESOURCES_LIMITS_MEMORY:-32M}
+          memory: ${RESOURCES_LIMITS_MEMORY:-64M}
         reservations:
           cpus: '${RESOURCES_RESERVATIONS_CPUS:-0.001}'
-          memory: ${RESOURCES_RESERVATIONS_MEMORY:-16M}
+          memory: ${RESOURCES_RESERVATIONS_MEMORY:-32M}
 
 networks:
   metric-net:
@@ -60,7 +66,7 @@ networks:
 volumes:
   data-vol:
     name: ${DATA_VOL_NAME}
-    driver: local
+    driver: ${VOL_DRIVER}
     driver_opts:
       type: ${VOL_TYPE}
       o: addr=${VOL_ADDR},${VOL_OPTS}
