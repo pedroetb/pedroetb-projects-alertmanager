@@ -67,7 +67,7 @@ volumes:
     driver: ${VOL_DRIVER}
     driver_opts:
       type: ${VOL_TYPE}
-      o: addr=${VOL_ADDR},${VOL_OPTS}
+      o: addr=${VOL_ADDR},vers=${VOL_VERS},${VOL_OPTS}
       device: ${DATA_VOL_DEVICE}
 
 configs:
