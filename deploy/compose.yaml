@@ -68,7 +68,7 @@ volumes:
     driver_opts:
       type: ${VOL_TYPE}
       o: addr=${VOL_ADDR},vers=${VOL_VERS},${VOL_OPTS}
-      device: ${DATA_VOL_DEVICE}
+      device: :${VOL_DEVICE_PREFIX}${DATA_VOL_DEVICE}
 
 configs:
   entrypoint-config:
