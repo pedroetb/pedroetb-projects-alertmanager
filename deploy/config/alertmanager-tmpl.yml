@@ -1,11 +1,18 @@
+global:
+  telegram_api_url: '${TELEGRAM_URL}'
+
 route:
-  receiver: 'slack'
+  receiver: 'telegram'
 
 receivers:
-  - name: 'slack'
-    slack_configs:
+  - name: 'telegram'
+    telegram_configs:
       - send_resolved: true
-        text: "{{ .CommonAnnotations.description }}"
-        username: '${SLACK_USER}'
-        channel: '${SLACK_CHANNEL}'
-        api_url: '${SLACK_URL}'
+        bot_token: '${TELEGRAM_BOT_TOKEN}'
+        chat_id: ${TELEGRAM_CHAT_ID}
+        message: '{{ template "telegram-message-tmpl" . }}'
+        parse_mode: '${TELEGRAM_PARSE_MODE}'
+        disable_notifications: ${TELEGRAM_DISABLE_NOTIFICATIONS}
+
+templates:
+  - './telegram-message.tmpl'

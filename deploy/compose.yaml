@@ -3,14 +3,18 @@ services:
     image: ${IMAGE_NAME:-prom/alertmanager}:${IMAGE_TAG:-latest}
     entrypoint: ${CONFIG_PATH}/entrypoint.sh
     command:
+      - --web.listen-address=:${PORT}
+      - --web.external-url=https://${TRAEFIK_SUBDOMAIN}.${TRAEFIK_DOMAIN}
+      - --log.level=${LOG_LEVEL:-info}
       - --config.file=${CONFIG_PATH}/alertmanager.yml
       - --storage.path=${DATA_PATH}
-      - --web.external-url=https://${TRAEFIK_SUBDOMAIN}.${TRAEFIK_DOMAIN}
     environment:
       CONFIG_PATH:
-      SLACK_URL:
-      SLACK_CHANNEL:
-      SLACK_USER:
+      TELEGRAM_URL:
+      TELEGRAM_BOT_TOKEN:
+      TELEGRAM_CHAT_ID:
+      TELEGRAM_PARSE_MODE:
+      TELEGRAM_DISABLE_NOTIFICATIONS:
     networks:
       metric-net:
       traefik-net:
@@ -22,8 +26,10 @@ services:
         mode: 0555
       - source: alertmanager-config
         target: ${CONFIG_PATH}/alertmanager-tmpl.yml
+      - source: telegram-message-tmpl-config
+        target: ${CONFIG_PATH}/telegram-message.tmpl
     healthcheck:
-      test: wget --spider -q http://localhost:${PORT}/-/healthy
+      test: wget --spider -q http://127.0.0.1:${PORT}/-/healthy
       interval: ${HEALTHCHECK_INTERVAL:-1m}
       timeout: ${HEALTHCHECK_TIMEOUT:-15s}
       retries: ${HEALTHCHECK_RETRIES:-10}
@@ -78,3 +84,7 @@ configs:
   alertmanager-config:
     name: ${ALERTMANAGER_CONFIG_NAME:-alertmanager-config}
     file: ./config/alertmanager-tmpl.yml
+
+  telegram-message-tmpl-config:
+    name: ${TELEGRAM_MESSAGE_TMPL_CONFIG_NAME:-alertmanager-telegram-message-tmpl-config}
+    file: ./config/telegram-message.tmpl

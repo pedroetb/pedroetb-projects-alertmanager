@@ -1,0 +1,27 @@
+{{ define "telegram-message-tmpl" }}
+{{ if eq .Status "firing" -}}🔥{{ else }}✅{{ end -}}
+{{ " " }}{{ .Status | toUpper }}:{{ " " }}
+{{- if eq .Status "firing" -}}
+  {{ .Alerts.Firing | len }}
+{{- else -}}
+  {{ .Alerts.Resolved | len }}
+{{- end }}
+{{- if gt (len .CommonLabels) (len .GroupLabels) -}}
+  {{- with .CommonLabels.Remove .GroupLabels.Names }}
+    {{- range .SortedPairs }} | `{{ .Value }}`{{ end -}}
+  {{ end -}}
+{{ end }}
+{{ range $index, $alert := .Alerts }}
+  {{- "\n" -}}
+  {{- if eq $alert.Status "firing" }}🔴{{ else }}⚪{{ end -}}
+  {{- " " }}#{{ $index }} `{{ $alert.Labels.alertname }}` | `{{ $alert.Labels.severity }}`
+  {{- range $alert.Annotations.SortedPairs }}
+    • _{{ reReplaceAll "_" "____" .Name }}_ = *{{ .Value }}*
+  {{- end -}}
+  {{- with $alert.Labels.Remove (stringSlice "alertname" "severity") -}}
+  {{- range .SortedPairs }}
+    • _{{ reReplaceAll "_" "____" .Name }}_ = `{{ .Value }}`
+  {{- end }}
+  {{- end }}
+{{ end }}
+{{ end }}
